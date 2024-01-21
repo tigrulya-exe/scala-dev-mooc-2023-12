@@ -1,8 +1,7 @@
 package module1
 
-import java.util.UUID
+import java.util.StringJoiner
 import scala.annotation.tailrec
-import java.time.Instant
 import scala.language.postfixOps
 
 
@@ -228,6 +227,36 @@ object hof{
       case None => None
     }
 
+    /**
+     *
+     * Реализовать метод printIfAny, который будет печатать значение, если оно есть
+     */
+    def printIfAny(): Unit = this match {
+      case Some(v) => println(v)
+      case None =>
+    }
+
+    /**
+     *
+     * Реализовать метод zip, который будет создавать Option от пары значений из 2-х Option
+     */
+    def zip[V](other: Option[V]): Option[(T, V)] = this match {
+      case Some(leftVal) => other match {
+        case Some(rightVal) => Some((leftVal, rightVal))
+        case None => None
+      }
+      case None => None
+    }
+
+    /**
+     *
+     * Реализовать метод filter, который будет возвращать не пустой Option
+     * в случае если исходный не пуст и предикат от значения = true
+     */
+    def filter(predicate: T => Boolean): Option[T] = this match {
+      case Some(leftVal) if predicate(leftVal) => this
+      case _ => None
+    }
   }
 
   case class Some[V](v: V) extends Option[V]
@@ -242,32 +271,26 @@ object hof{
   val o1: Option[Int] = Option(1)
   o1.isEmpty // false
 
+  Option("I should be printed").printIfAny()
+  None.printIfAny()
 
+  Option("Me")
+    .zip(Option("and my zipped brother"))
+    .printIfAny()
+  Option("I shouldn't be printed")
+    .zip(None)
+    .printIfAny()
+  None
+    .zip(Option("Me too"))
+    .printIfAny()
 
+  Option("Filtered me should be printed")
+    .filter(_.contains("printed"))
+    .printIfAny()
 
-
-
-
-
-
-  /**
-   *
-   * Реализовать метод printIfAny, который будет печатать значение, если оно есть
-   */
-
-
-  /**
-   *
-   * Реализовать метод zip, который будет создавать Option от пары значений из 2-х Option
-   */
-
-
-  /**
-   *
-   * Реализовать метод filter, который будет возвращать не пустой Option
-   * в случае если исходный не пуст и предикат от значения = true
-   */
-
+  Option("I shouldn't be printed")
+    .filter(_.contains("another word"))
+    .printIfAny()
  }
 
  object list {
@@ -279,55 +302,90 @@ object hof{
     * Cons - непустой, содержит первый элемент (голову) и хвост (оставшийся список)
     */
 
-    trait List[+T]{
-      def ::[TT >: T](elem: TT): List[TT] = ???
-    }
+    trait List[+T] {
+     /**
+      * Метод cons, добавляет элемент в голову списка, для этого метода можно воспользоваться названием `::`
+      *
+      */
+     def ::[TT >: T](elem: TT): List[TT] = List.::(elem, this)
+
+     /**
+      * Метод mkString возвращает строковое представление списка, с учетом переданного разделителя
+      *
+      */
+     def mkString(separator: String = ","): String = {
+       @tailrec
+       def mkString(list: List[T], acc: StringJoiner): String = list match {
+         case List.::(head, tail) => mkString(tail, acc.add(head.toString))
+         case List.Nil => acc.toString
+       }
+
+       mkString(this, new StringJoiner(separator))
+     }
+
+     /**
+      *
+      * Реализовать метод reverse который позволит заменить порядок элементов в списке на противоположный
+      */
+      def reverse(): List[T] = {
+        @tailrec
+        def reverse(list: List[T], acc: List[T]): List[T] = list match {
+          case List.::(head, tail) => reverse(tail, head :: acc)
+          case List.Nil => acc
+        }
+
+        reverse(this, List())
+      }
+
+
+     /**
+      *
+      * Реализовать метод map для списка который будет применять некую ф-цию к элементам данного списка
+      */
+     def map[V](func: T => V): List[V] = {
+       @tailrec
+       def map(list: List[T], acc: List[V]): List[V] = list match {
+         case List.::(head, tail) => map(tail, func(head) :: acc)
+         case List.Nil => acc.reverse()
+       }
+
+       map(this, List())
+     }
+
+     /**
+      *
+      * Реализовать метод filter для списка который будет фильтровать список по некому условию
+      */
+     def filter(predicate: T => Boolean): List[T] = {
+       @tailrec
+       def filter(list: List[T], accumulator: List[T]): List[T] = list match {
+         case List.::(head, tail) if predicate(head) => filter(tail, head :: accumulator)
+         case List.::(_, tail) => filter(tail, accumulator)
+         case List.Nil => accumulator.reverse()
+       }
+
+       filter(this, List())
+     }
+   }
 
     object List{
       case class ::[A](head: A, tail: List[A]) extends List[A]
       case object Nil extends List[Nothing]
 
       def apply[A](v: A*): List[A] =
-        if(v.isEmpty) List.Nil else new ::(v.head, apply(v.tail:_*))
+        if(v.isEmpty) List.Nil else ::(v.head, apply(v.tail:_*))
     }
 
     val l1: List[Int] = List(1, 2, 3)
     val l2: List[Int] = 1 :: 2 :: 3 :: List.Nil
 
 
-
-   /**
-     * Метод cons, добавляет элемент в голову списка, для этого метода можно воспользоваться названием `::`
-     *
-     */
-
-    /**
-      * Метод mkString возвращает строковое представление списка, с учетом переданного разделителя
-      *
-      */
-
     /**
       * Конструктор, позволяющий создать список из N - го числа аргументов
       * Для этого можно воспользоваться *
-      * 
+      *
       * Например вот этот метод принимает некую последовательность аргументов с типом Int и выводит их на печать
       * def printArgs(args: Int*) = args.foreach(println(_))
-      */
-
-    /**
-      *
-      * Реализовать метод reverse который позволит заменить порядок элементов в списке на противоположный
-      */
-
-    /**
-      *
-      * Реализовать метод map для списка который будет применять некую ф-цию к элементам данного списка
-      */
-
-
-    /**
-      *
-      * Реализовать метод filter для списка который будет фильтровать список по некому условию
       */
 
     /**
@@ -336,6 +394,7 @@ object hof{
       * где каждый элемент будет увеличен на 1
       */
 
+   def incList(integers: List[Int]): List[Int] = integers.map(_ + 1)
 
     /**
       *
@@ -343,4 +402,21 @@ object hof{
       * где к каждому элементу будет добавлен префикс в виде '!'
       */
 
+    def shoutString(strings: List[String]): List[String] = strings.map("!" + _)
+
+   val integers = List(1, 2, 3, 4, 5)
+
+   println("original: " + integers.mkString())
+
+   println("reversed: " + integers.reverse().mkString())
+
+   println("multiplied by 4: " + integers.map(_ * 4).mkString())
+
+   println("only odd numbers: " + integers.filter(_ % 2 != 0).mkString())
+
+   println("incremented by 1: " + incList(integers).mkString())
+
+   val strings = List("hello", "my", "friend")
+
+   println("with added prefixes: " + shoutString(strings).mkString())
  }
