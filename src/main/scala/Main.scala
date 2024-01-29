@@ -1,9 +1,9 @@
-import module1.{hof, type_system}
+import collections.task_collections
 
 object Main {
 
   def main(args: Array[String]): Unit = {
-    hof
+    task_collections
 
   }
 }
