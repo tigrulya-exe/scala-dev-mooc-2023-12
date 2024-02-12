@@ -1,5 +1,6 @@
 import module1.threads.{Thread1, getRatesLocation1, getRatesLocation2, getRatesLocation3, getRatesLocation4, getRatesLocation5, getRatesLocation6, getRatesLocation7, getRatesLocation8, printRunningTime}
 import module1.{future, hof, list, threads, type_system}
+import module2.higher_kinded_types
 import module2.implicits.implicit_scopes
 
 import scala.collection.mutable
@@ -52,6 +53,7 @@ object Main {
 //    future.f03
 
 
-    implicit_scopes.result
+    // implicit_scopes.result
+    higher_kinded_types
   }
 }
