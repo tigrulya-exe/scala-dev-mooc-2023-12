@@ -97,7 +97,7 @@ object type_classes {
       eq.===(a, b)
   }
 
-  val result = List("a", "b", "c").filter(str => str === 1)
+  val result = List("a", "b", "c").filter(str => str === "1")
 
 
 
