@@ -2,10 +2,6 @@ package scala3_1
 
 
 
-
-
-
-/*
 //1. исполользовать given, как написано в комментариях и в почеченных местах ниже
 //2. использовать новый "тихий синтаксис", где сочтете приемлемым, тут на ваше усмотрение
 //https://docs.scala-lang.org/scala3/new-in-scala3.html  глава New & Shiny: The Syntax
@@ -22,11 +18,14 @@ class MonadParser[T, Src](private val p: Src => (T, Src)) {
       //с помощью функции — аргумента метода добавляем его в контекст, видимый всем последующим парсерам по цепочке.
       res
     }
+
+
   def map[M](f: T => M): MonadParser[M, Src] =
     MonadParser { src =>
       val (word, rest) = p(src)
       (f(word), rest)
     }
+
   def parse(src: Src): T = p(src)._1
 }
 
@@ -35,21 +34,23 @@ object MonadParser {
     new MonadParser[T, Src](f)
 }
 
-trait FieldConversion[A,B]:
+trait FieldConversion[A, B]:
   def convert(x: A): B
 
-given intFieldConversion: FieldConversion[String,Int] with
-  def convert(x: String): Int = ???
 // сделать given instance для типов Int Float Double
 // в функции просто сконвертнуть строку в нужный тип
+given intFieldConversion: FieldConversion[String, Int] = _.toInt
+given floatFieldConversion: FieldConversion[String, Float] = _.toFloat
+given doubleFieldConversion: FieldConversion[String, Double] = _.toDouble
+given booleanFieldConversion: FieldConversion[String, Boolean] = _.toBoolean
 
-object TestExecution{
+object TestExecution {
 
   //здесь написать функцию, которая будет применять given определенные выше
   // использовать using fieldConversion c первым параметром String, а второй будет вариативны параметр B
 
-  def parse[String,B](x:String)(?????????) : B =
-    ...вызвать собственнь функцию из трейта FieldConversion...
+  def parse[String, B](x: String)(using conversion: FieldConversion[String, B]): B =
+    conversion.convert(x)
 
 
   def main(args: Array[String]): Unit = {
@@ -63,13 +64,18 @@ object TestExecution{
           (str, "")
       }
 
-    def IntField =  ??? //StringField.map(...здесь применить parse который подхватит нужный given автоматически ...)
-    def FloatField = ???
-    def BooleanField =???
+    //StringField.map(...здесь применить parse который подхватит нужный given автоматически ...)
+    def IntField: MonadParser[Int, String] = StringField.map(parse)
 
-    case class Car(year: Int, mark: String, model: String, comment: String, price: Float)
+    def FloatField: MonadParser[Float, String] = StringField.map(parse)
 
-    val str = "1997;Ford;E350;ac, abs, moon;3000\n1996; Jeep; Grand Cherokee; MUST SELL! air, moon roof, loaded; 4799"
+    def DoubleField: MonadParser[Double, String] = StringField.map(parse)
+
+    def BooleanField: MonadParser[Boolean, String] = StringField.map(parse)
+
+    case class Car(year: Int, mark: String, model: String, comment: String, price: Float, isWorking: Boolean)
+
+    val str = "1997;Ford;E350;ac, abs, moon;3000;true\n1996; Jeep; Grand Cherokee; MUST SELL! air, moon roof, loaded; 4799;false"
 
     val parser =
       for {
@@ -78,11 +84,12 @@ object TestExecution{
         model <- StringField
         comment <- StringField
         price <- FloatField
-      } yield Car(year, mark, model, comment, price)
+        isWorking <- BooleanField
+      } yield Car(year, mark, model, comment, price, isWorking)
 
 
     val result = str.split('\n').map(parser.parse)
 
-    println(result.map(x=>s"${x.model},${x.mark},${x.year}").mkString(";"))
+    println(result.map(x => s"${x.model},${x.mark},${x.year},${x.isWorking}").mkString("\n"))
   }
-}*/
+}
