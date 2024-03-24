@@ -11,7 +11,8 @@ object buildingZIOServices{
 
 
   val app: ZIO[UserService with EmailService with UserDAO, Throwable, Unit] =
-    UserService.notifyUser(UserID(1))
+    ???
+//    UserService.notifyUser(UserID(1))
 
   val env: ZLayer[Any, Nothing, UserDAO with UserService with EmailService] =
     UserDAO.live >+> UserService.live ++ EmailService.live
