@@ -11,25 +11,6 @@ import zio.{Has, URIO, ZIO, ZLayer}
 import java.util.concurrent.TimeUnit
 import scala.language.postfixOps
 
-object Main {
-
-  def main(args: Array[String]): Unit = {
-    var iter = 3
-
-    val effect = for {
-      _ <- putStrLn(s"Current val: $iter")
-      _ <- ZIO.effect(iter -= 1)
-      needBreak <- ZIO.succeed(iter == 0)
-    } yield needBreak
-
-
-    //    zio.Runtime.default.unsafeRun(zio_homework.doWhile(effect))
-    //    zio.Runtime.default.unsafeRun(zio_homework.loadConfigOrDefault)
-    //    zio.Runtime.default.unsafeRun(zio_homework.app)
-    zio.Runtime.default.unsafeRun(zio_homework.appSpeedUp)
-  }
-}
-
 package object zio_homework {
   /**
    * 1.
@@ -65,7 +46,7 @@ package object zio_homework {
 
 
   def loadConfigOrDefault: URIO[Console, Unit] = for {
-    cfg <- config.load.orElseSucceed(AppConfig("test_host", "777"))
+    cfg <- config.load.orElseSucceed(AppConfig("default_host", "777"))
     _ <- putStrLn(cfg.toString)
   } yield ()
 
@@ -84,7 +65,7 @@ package object zio_homework {
   lazy val eff: URIO[Clock with Random with Console, Int] = for {
     _ <- ZIO.sleep(1 seconds)
     randomNum <- zio.random.nextIntBetween(1, 10)
-    _ <- putStrLn(s"Random: $randomNum")
+    _ <- putStrLn(s"Random num: $randomNum")
   } yield randomNum
 
   /**
@@ -109,7 +90,7 @@ package object zio_homework {
     _.zipWith(_)(_ + _)
   }
 
-  lazy val app = printEffectRunningTimeWithResult(sumOfRandoms)
+  lazy val app: URIO[Console with Clock with Random, Int] = printEffectRunningTimeWithResult(sumOfRandoms)
 
 
   /**
@@ -120,7 +101,7 @@ package object zio_homework {
     _.zipWithPar(_)(_ + _)
   }
 
-  lazy val appSpeedUp = printEffectRunningTimeWithResult(sumOfRandomsPar)
+  lazy val appSpeedUp: URIO[Console with Clock with Random, Int] = printEffectRunningTimeWithResult(sumOfRandomsPar)
 
 
   /**
@@ -145,9 +126,9 @@ package object zio_homework {
       } yield r
     }
 
-    val live: ZLayer[Console with Clock, Nothing, RunningTimePrinter] = ZLayer.fromServices[Console.Service, Clock.Service, RunningTimePrinter.Service](
-      (consoleService, clockService) => ServiceImpl(consoleService, clockService)
-    )
+    val live: ZLayer[Console with Clock, Nothing, RunningTimePrinter] =
+      ZLayer.fromServices[Console.Service, Clock.Service, RunningTimePrinter.Service](
+        (console, clock) => ServiceImpl(console, clock))
 
     def printRunningTime[R, E, A](effect: ZIO[R, E, A]): ZIO[RunningTimePrinter with R, E, A] = {
       ZIO.accessM(_.get.printRunningTime(effect))
@@ -161,14 +142,20 @@ package object zio_homework {
    *
    */
 
-  lazy val appWithTimeLogg: ZIO[RunningTimePrinter with Console with Clock with Random, Nothing, Int] =
-    RunningTimePrinter.printRunningTime(sumOfRandoms)
+  lazy val printSumOfRandomsResult = for {
+    result <- sumOfRandoms
+    _ <- putStrLn(s"Random numbers sum: $result")
+  } yield ()
+
+  lazy val appWithTimeLogg: ZIO[RunningTimePrinter with Console with Clock with Random, Nothing, Unit] =
+    RunningTimePrinter.printRunningTime(printSumOfRandomsResult)
 
   /**
    *
    * Подготовьте его к запуску и затем запустите воспользовавшись ZioHomeWorkApp
    */
 
-  lazy val runApp: ZIO[Console with Clock with Random, Nothing, Int] = appWithTimeLogg.provideSomeLayer[Console with Clock with Random](RunningTimePrinter.live)
+  lazy val runApp: ZIO[Console with Clock with Random, Nothing, Unit] =
+    appWithTimeLogg.provideSomeLayer[Console with Clock with Random](RunningTimePrinter.live)
 
 }
