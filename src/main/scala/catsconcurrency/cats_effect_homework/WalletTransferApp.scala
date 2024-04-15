@@ -4,8 +4,7 @@ import cats.Monad
 import cats.effect.kernel.Ref
 import cats.effect.{IO, IOApp}
 import cats.implicits._
-import catsconcurrency.cats_effect_homework.Wallet.{BalanceTooLow, WalletError}
-import Wallet.{BalanceTooLow, WalletError}
+import Wallet.{BalanceTooLow, WalletError, WalletId}
 
 // Здесь мы хотим протестировать бизнес-логику использующую кошельки: функцию transfer.
 // Однако мы не хотим в наших тестах создавать какие-то файлы: в реальном приложении такой тест будет нуждаться в базе данных,
@@ -32,6 +31,8 @@ object WalletTransferApp extends IOApp.Simple {
     def balance: F[BigDecimal] = ???
     def topup(amount: BigDecimal): F[Unit] = ???
     def withdraw(amount: BigDecimal): F[Either[WalletError, Unit]] = ???
+
+    override def id: WalletId = ???
   }
 
   // todo: реализовать конструктор. Снова хитрая сигнатура, потому что создание Ref - это побочный эффект

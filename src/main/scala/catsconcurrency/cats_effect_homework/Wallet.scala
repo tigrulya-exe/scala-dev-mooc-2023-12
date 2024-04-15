@@ -16,6 +16,9 @@ trait Wallet[F[_]] {
 
   // списывает указанную сумму с баланса (ошибка если средств недостаточно)
   def withdraw(amount: BigDecimal): F[Either[WalletError, Unit]]
+
+  // just for debugging
+  def id: WalletId
 }
 
 // Игрушечный кошелек который сохраняет свой баланс в файл
@@ -30,7 +33,7 @@ trait Wallet[F[_]] {
 // - java.nio.file.Files.exists
 // - java.nio.file.Paths.get
 
-final class FileWallet[F[_] : Sync](id: WalletId) extends Wallet[F] {
+final class FileWallet[F[_] : Sync](val id: WalletId) extends Wallet[F] {
   private val walletFilePath = Path.of("wallets", id)
 
   def balance: F[BigDecimal] = {
@@ -44,8 +47,8 @@ final class FileWallet[F[_] : Sync](id: WalletId) extends Wallet[F] {
   def topup(amount: BigDecimal): F[Unit] = {
     for {
       currentBalance <- balance
-      result <- writeBalance(currentBalance + amount)
-    } yield result
+      _ <- writeBalance(currentBalance + amount)
+    } yield ()
   }
 
   def withdraw(amount: BigDecimal): F[Either[WalletError, Unit]] = {
@@ -63,20 +66,20 @@ final class FileWallet[F[_] : Sync](id: WalletId) extends Wallet[F] {
   private def maybeCreateWalletFile(): F[Unit] = {
     for {
       fileExists <- Sync[F].delay(Files.exists(walletFilePath))
-      result <- if (!fileExists) {
+      _ <- if (!fileExists) {
         createWalletFile()
       } else {
         Sync[F].unit
       }
-    } yield result
+    } yield ()
   }
 
   private def createWalletFile(): F[Unit] = {
     for {
       _ <- Sync[F].delay(Files.createDirectories(walletFilePath.getParent))
       _ <- Sync[F].delay(Files.createFile(walletFilePath))
-      result <- writeBalance(BigDecimal(0))
-    } yield result
+      _ <- writeBalance(BigDecimal(0))
+    } yield ()
   }
 
   private def writeBalance(balance: BigDecimal): F[Unit] = {

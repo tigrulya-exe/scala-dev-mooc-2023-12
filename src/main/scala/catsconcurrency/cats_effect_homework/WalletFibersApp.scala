@@ -3,6 +3,8 @@ package catsconcurrency.cats_effect_homework
 import cats.effect.{IO, IOApp}
 import cats.implicits._
 
+import scala.concurrent.duration.DurationLong
+
 // Поиграемся с кошельками на файлах и файберами.
 
 // Нужно написать программу где инициализируются три разных кошелька и для каждого из них работает фоновый процесс,
@@ -25,6 +27,45 @@ object WalletFibersApp extends IOApp.Simple {
       wallet2 <- Wallet.fileWallet[IO]("2")
       wallet3 <- Wallet.fileWallet[IO]("3")
       // todo: запустить все файберы и ждать ввода от пользователя чтобы завершить работу
+      worker1 <- worker(wallet1, 100).start
+      worker2 <- worker(wallet2, 500).start
+      worker3 <- worker(wallet3, 1000).start
+
+      observer <- walletsObserver(1000, wallet1, wallet2, wallet3).start
+
+      _ <- IO.readLine
+
+      _ <- worker1.cancel
+      _ <- worker2.cancel
+      _ <- worker3.cancel
+      _ <- observer.cancel
     } yield ()
 
+  private def walletsObserver(showDelay: Long, wallets: Wallet[IO]*): IO[Unit] =
+    walletsObserverIteration(showDelay, wallets: _*).foreverM
+
+  private def walletsObserverIteration(showDelay: Long, wallets: Wallet[IO]*): IO[Unit] = {
+    for {
+      _ <- IO.sleep(showDelay.milliseconds)
+      _ <- wallets.map(walletObserver).sequence_
+      _ <- IO.println("====================")
+    } yield ()
+  }
+
+  private def walletObserver(wallet: Wallet[IO]): IO[Unit] = {
+    for {
+      balance <- wallet.balance
+      _ <- IO.println(s"Balance for wallet ${wallet.id}: $balance")
+    } yield ()
+  }
+
+  private def worker(wallet: Wallet[IO], writeDelay: Long): IO[Unit] =
+    workerIteration(wallet, writeDelay).foreverM
+
+  private def workerIteration(wallet: Wallet[IO], writeDelay: Long): IO[Unit] = {
+    for {
+      _ <- IO.sleep(writeDelay.milliseconds)
+      result <- wallet.topup(1)
+    } yield result
+  }
 }
