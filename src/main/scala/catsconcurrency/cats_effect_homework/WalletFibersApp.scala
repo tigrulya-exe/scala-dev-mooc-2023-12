@@ -29,7 +29,7 @@ object WalletFibersApp extends IOApp.Simple {
       // todo: запустить все файберы и ждать ввода от пользователя чтобы завершить работу
       worker1 <- worker(wallet1, 100).start
       worker2 <- worker(wallet2, 500).start
-      worker3 <- worker(wallet3, 1000).start
+      worker3 <- worker(wallet3, 2000).start
 
       observer <- walletsObserver(1000, wallet1, wallet2, wallet3).start
 
@@ -65,7 +65,7 @@ object WalletFibersApp extends IOApp.Simple {
   private def workerIteration(wallet: Wallet[IO], writeDelay: Long): IO[Unit] = {
     for {
       _ <- IO.sleep(writeDelay.milliseconds)
-      result <- wallet.topup(1)
+      result <- wallet.topup(100)
     } yield result
   }
 }

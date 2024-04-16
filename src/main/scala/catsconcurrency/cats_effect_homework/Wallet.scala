@@ -54,11 +54,10 @@ final class FileWallet[F[_] : Sync](val id: WalletId) extends Wallet[F] {
   def withdraw(amount: BigDecimal): F[Either[WalletError, Unit]] = {
     for {
       currentBalance <- balance
-      // todo
       result <- if (currentBalance < amount) {
         Sync[F].pure(Left(BalanceTooLow))
       } else {
-        writeBalance(currentBalance - amount).map(Right(_))
+        writeBalance(currentBalance - amount).map(_.asRight)
       }
     } yield result
   }
