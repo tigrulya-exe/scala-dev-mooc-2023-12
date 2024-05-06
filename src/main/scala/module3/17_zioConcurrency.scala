@@ -31,7 +31,7 @@ object zioConcurrency {
       start <- currentTime
       r <- zio
       end <- currentTime
-      _ <- putStrLn(s"Running time ${end - start}")
+      _ <- putStrLn(s"Running time ${end - start}").orDie
     } yield r
 
 
@@ -53,7 +53,7 @@ object zioConcurrency {
   /**
    * Создать эффект который печатает в консоль GetExchangeRatesLocation1 спустя 3 секунды
    */
-  lazy val getExchangeRatesLocation1: ZIO[Console with Clock, Nothing, Unit] = sleep3Seconds zipRight putStrLn("GetExchangeRatesLocation1")
+  lazy val getExchangeRatesLocation1: ZIO[Console with Clock, Nothing, Unit] = sleep3Seconds zipRight putStrLn("GetExchangeRatesLocation1").orDie
 
   /**
    * Создать эффект который печатает в консоль GetExchangeRatesLocation2 спустя 1 секунду
