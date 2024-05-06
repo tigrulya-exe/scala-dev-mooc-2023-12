@@ -13,6 +13,12 @@ libraryDependencies ++= Dependencies.fs2
 libraryDependencies ++= Dependencies.http4s
 libraryDependencies ++= Dependencies.circe
 libraryDependencies ++= Dependencies.akkaContainers
+libraryDependencies += Dependencies.liquibase
+libraryDependencies += Dependencies.postgres
+libraryDependencies += Dependencies.logback
+libraryDependencies ++= Dependencies.quill
+libraryDependencies ++= Dependencies.testContainers
+libraryDependencies += Dependencies.zioHttp
 
 scalacOptions += "-Ymacro-annotations"
 scalacOptions += "-Xlint"
