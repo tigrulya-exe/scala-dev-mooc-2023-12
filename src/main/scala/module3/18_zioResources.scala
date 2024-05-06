@@ -120,7 +120,7 @@ object tryFinally {
 
     def handleFile(file: Source): URIO[Console, List[Unit]] =
       ZIO.foreach(file.getLines().toList){str =>
-        putStrLn(str)
+        putStrLn(str).orDie
       }
 
     /**
