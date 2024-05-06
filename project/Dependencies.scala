@@ -48,6 +48,30 @@ object Dependencies {
     "dev.zio" %% "zio-config-magnolia" % "1.0.5",
     "dev.zio" %% "zio-config-typesafe" % "1.0.5"
   )
+  lazy val akkaVersion = "2.8.3"
+  lazy val leveldbVersion = "0.7"
+  lazy val leveldbjniVersion = "1.8"
 
+  lazy val akkaContainers = Seq(
+    // Use Coda Hale Metrics and Akka instrumentation
+    "com.typesafe.akka" %% "akka-actor-typed" % akkaVersion,
+    "com.typesafe.akka" %% "akka-stream" % akkaVersion,
+    "com.typesafe.akka" %% "akka-persistence-typed" % akkaVersion,
+    "com.typesafe.akka" %% "akka-persistence-query" % akkaVersion,
+    "com.typesafe.akka" %% "akka-cluster-sharding-typed" % akkaVersion,
+    "com.typesafe.akka" %% "akka-cluster-typed" % akkaVersion,
+    "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
+    "com.typesafe.akka" %% "akka-testkit" % akkaVersion,
+    "com.typesafe.akka" %% "akka-remote" % akkaVersion,
+    "io.aeron" % "aeron-driver" % "1.40.0",
+    "io.aeron" % "aeron-client" % "1.40.0",
+
+    "org.iq80.leveldb" % "leveldb" % leveldbVersion,
+    "org.fusesource.leveldbjni" % "leveldbjni-all" % leveldbjniVersion,
+
+    "ch.qos.logback" % "logback-classic" % "1.2.3",
+    "com.typesafe.akka" %% "akka-actor-testkit-typed" % akkaVersion % Test,
+    "org.scalatest" %% "scalatest" % "3.1.0" % Test
+  )
 
 }

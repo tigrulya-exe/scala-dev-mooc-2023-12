@@ -12,6 +12,7 @@ libraryDependencies ++= Dependencies.cats
 libraryDependencies ++= Dependencies.fs2
 libraryDependencies ++= Dependencies.http4s
 libraryDependencies ++= Dependencies.circe
+libraryDependencies ++= Dependencies.akkaContainers
 
 scalacOptions += "-Ymacro-annotations"
 scalacOptions += "-Xlint"
