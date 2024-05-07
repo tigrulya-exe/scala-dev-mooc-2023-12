@@ -21,7 +21,7 @@ object HomeworkServer {
 
   case class CounterWrapper(value: Long)
 
-  implicit val counterDecoder: Encoder[CounterWrapper] = deriveEncoder
+  implicit val counterEncoder: Encoder[CounterWrapper] = deriveEncoder
 
   type Session[F[_]] = Ref[F, Long]
 
@@ -29,27 +29,10 @@ object HomeworkServer {
     HttpRoutes.of {
       case GET -> Root / "counter" =>
         for {
-          counter <- session.getAndUpdate(_ + 1)
+          counter <- session.updateAndGet(_ + 1)
           response <- Ok(CounterWrapper(counter))
         } yield response
     }
-  }
-
-  private def chunkStream(chunkSize: Int, chunkTotalSize: Int, delay: FiniteDuration): Stream[IO, Array[Byte]] = {
-    Stream
-      .range(0, chunkTotalSize)
-      .covary[IO]
-      .map(_ => "1".toByte)
-      .chunkN(chunkSize)
-      .metered(delay)
-      .map(_.toArray)
-  }
-
-  private def positiveOrError(value: => String): Either[String, Int] = {
-    Try(value.toInt)
-      .filter(_ >= 0)
-      .toEither
-      .leftMap(_ => s"Error parsing value: $value")
   }
 
   val chunkProviderService: HttpRoutes[IO] = {
@@ -84,6 +67,23 @@ object HomeworkServer {
       .withHttpApp(httpApp(session))
       .build
   } yield server
+
+  private def chunkStream(chunkSize: Int, chunkTotalSize: Int, delay: FiniteDuration): Stream[IO, Byte] = {
+    Stream
+      .range(0, chunkTotalSize)
+      .map(_ => 1.asInstanceOf[Byte])
+      .chunkN(chunkSize, allowFewer = true)
+      .covary[IO]
+      .metered(delay)
+      .unchunks
+  }
+
+  private def positiveOrError(value: => String): Either[String, Int] = {
+    Try(value.toInt)
+      .filter(_ >= 0)
+      .toEither
+      .leftMap(_ => s"Error parsing value: $value")
+  }
 }
 
 object HomeworkServerApp extends IOApp.Simple {
