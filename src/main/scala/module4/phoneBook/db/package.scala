@@ -15,7 +15,7 @@ package object db {
 
   type DataSource = Has[javax.sql.DataSource]
 
-  object Ctx extends PostgresZioJdbcContext(NamingStrategy(Escape, Literal))
+  object Ctx extends PostgresZioJdbcContext(NamingStrategy(SnakeCase, Escape))
 
   def hikariDS: HikariDataSource = new JdbcContextConfig(LoadConfig("db")).dataSource
 

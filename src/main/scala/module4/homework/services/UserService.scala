@@ -25,25 +25,28 @@ object UserService{
 
         def listUsers(): RIO[db.DataSource, List[User]] = userRepo.list()
 
-        def listUsersDTO(): RIO[db.DataSource, List[UserDTO]] = for {
-            users <- listUsers()
-            userDtos <- toUserDtos(users)
-        } yield userDtos
-
-        def addUserWithRole(user: User, roleCode: RoleCode): RIO[db.DataSource, UserDTO] = for {
-            user <- userRepo.createUser(user)
-            _ <- userRepo.insertRoleToUser(roleCode, user.typedId)
-            userDto <- toUserDto(user)
-        } yield userDto
-
-        def listUsersWithRole(roleCode: RoleCode): RIO[db.DataSource,List[UserDTO]] = for {
-            users <- userRepo.listUsersWithRole(roleCode)
-            userDtos <- toUserDtos(users)
-        } yield userDtos
-
-        private def toUserDtos(users: List[User]): RIO[db.DataSource, List[UserDTO]] = ZIO.collectAll {
-            users.map(toUserDto)
+        def listUsersDTO(): RIO[db.DataSource, List[UserDTO]] = transaction {
+            for {
+                users <- listUsers()
+                userDtos <- toUserDtos(users)
+            } yield userDtos
         }
+
+        def addUserWithRole(user: User, roleCode: RoleCode): RIO[db.DataSource, UserDTO] = transaction {
+            for {
+                user <- userRepo.createUser(user)
+                _ <- userRepo.insertRoleToUser(roleCode, user.typedId)
+                userDto <- toUserDto(user)
+            } yield userDto
+        }
+
+        def listUsersWithRole(roleCode: RoleCode): RIO[db.DataSource,List[UserDTO]] = transaction {
+            for {
+                users <- userRepo.listUsersWithRole(roleCode)
+                userDtos <- toUserDtos(users)
+            } yield userDtos
+        }
+        private def toUserDtos(users: List[User]): RIO[db.DataSource, List[UserDTO]] = ZIO.foreach(users)(toUserDto)
 
         private def toUserDto(user: User): RIO[db.DataSource, UserDTO] = for {
             roles <- userRepo.userRoles(user.typedId)

@@ -1,7 +1,7 @@
 package module4
 
 import com.dimafeng.testcontainers.PostgreSQLContainer
-import io.getquill.{Escape, JdbcContextConfig, Literal, NamingStrategy, PostgresZioJdbcContext}
+import io.getquill.{Escape, JdbcContextConfig, Literal, NamingStrategy, PostgresZioJdbcContext, SnakeCase}
 import com.typesafe.config.Config
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import zio.ZLayer
@@ -13,7 +13,7 @@ object DBTransactor {
 
   type DataSource = Has[javax.sql.DataSource]
 
-  object Ctx extends PostgresZioJdbcContext(NamingStrategy(Escape, Literal))
+  object Ctx extends PostgresZioJdbcContext(NamingStrategy(SnakeCase, Escape))
 
   def hikariDS(config: Config): HikariDataSource = JdbcContextConfig(config).dataSource
 

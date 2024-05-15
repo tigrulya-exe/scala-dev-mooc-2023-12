@@ -3,14 +3,10 @@ package module4.homework.dao.repository
 import zio.{Has, ULayer, ZIO, ZLayer}
 import io.getquill.context.ZioJdbc._
 import module4.homework.dao.entity.User
-import zio.macros.accessible
 import module4.homework.dao.entity.{Role, UserToRole}
 import module4.homework.dao.entity.UserId
 import module4.homework.dao.entity.RoleCode
 import module4.phoneBook.db
-
-import java.sql.SQLException
-import javax.sql.DataSource
 
 
 object UserRepository{
@@ -77,14 +73,14 @@ object UserRepository{
 
         override def userRoles(userId: UserId): QIO[List[Role]] = dc.run {
             for {
-                user <- userSchema
-                userRole <- userRoleSchema.join(_.userId == user.id)
+                userWithRoles <- userSchema
+                userRole <- userRoleSchema.join(_.userId == userWithRoles.id)
                 roles <- roleSchema.join(_.code == userRole.roleId)
             } yield roles
         }
 
         override def insertRoleToUser(roleCode: RoleCode, userId: UserId): QIO[Unit] = dc.run(
-            userRoleSchema.insert(_.roleId -> lift(roleCode.code), _.userId -> lift(userId.id))
+            userRoleSchema.insert(lift(UserToRole(roleCode.code, userId.id)))
         ).unit
 
         override def listUsersWithRole(roleCode: RoleCode): QIO[List[User]] = dc.run {

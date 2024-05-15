@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
+
+    <changeSet id="create User table" author="tmanasyan">
+        <createTable tableName="user">
+            <column name="id" type="text">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="first_name" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_name" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="age" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create Role table" author="tmanasyan">
+        <createTable tableName="role">
+            <column name="code" type="text">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="text">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="add Manager role" author="tmanasyan">
+        <insert tableName="role">
+            <column name="code" value="manager"/>
+            <column name="name" value="Manager"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="create UserToRole table" author="tmanasyan">
+        <createTable tableName="user_to_role">
+            <column name="role_id" type="text">
+                <constraints references="role(code)"
+                             foreignKeyName="role_fk"
+                             nullable="false"/>
+            </column>
+            <column name="user_id" type="text">
+                <constraints references="user(id)"
+                             foreignKeyName="user_fk"
+                             nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>
